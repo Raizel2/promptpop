@@ -21,6 +21,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var hotKeyManager: HotKeyManager?
     private var popupWindow: PopupWindow?
+    private var promptStore: PromptStore!
     private let popupDelegate = PopupWindowDelegate()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -34,7 +35,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.togglePopup()
         }
 
-        print("[promptpop] 啟動完成,按 ⌘⇧P 叫出視窗")
+        // 建立提示詞資料來源。PromptStore 會在 init 時自動讀取 ~/Library/Application Support/promptpop/prompts.json
+            promptStore = PromptStore()
+            
+            // 啟動時印出載入結果,確認 JSON → Swift 管線通
+            print("[promptpop] 已載入提示詞:")
+            for prompt in promptStore.prompts {
+                print("  [\(prompt.category.displayName)] \(prompt.title)")
+            }
+            
+            print("[promptpop] 啟動完成,按 ⌘⇧P 叫出視窗")
     }
 
     /// 每次按 ⌘⇧P 時被呼叫。
@@ -51,7 +61,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private func showPopup() {
         // 視窗裡先放一個最簡單的內容:只顯示「promptpop」四個字,用來驗證整條管線有通。
         // 之後會把這裡換成真正的搜尋 UI。
-        let content = PlaceholderView()
+        let content = ContentView(store: promptStore)
 
         let window = PopupWindow(content: content)
         window.delegate = popupDelegate
