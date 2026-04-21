@@ -11,6 +11,8 @@
 		D29EF9012F96172F005A76CE /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D29EF9002F96172F005A76CE /* ContentView.swift */; };
 		D29EF9032F961731005A76CE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D29EF9022F961731005A76CE /* Assets.xcassets */; };
 		D29EF9062F961731005A76CE /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D29EF9052F961731005A76CE /* Preview Assets.xcassets */; };
+		D2C5ECDC2F97692A00996E7A /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2C5ECDB2F97692A00996E7A /* HotKeyManager.swift */; };
+		D2C5ECDE2F976A2400996E7A /* PopupWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2C5ECDD2F976A2400996E7A /* PopupWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +22,8 @@
 		D29EF9022F961731005A76CE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D29EF9052F961731005A76CE /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D29EF9072F961731005A76CE /* promptpop.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = promptpop.entitlements; sourceTree = "<group>"; };
+		D2C5ECDB2F97692A00996E7A /* HotKeyManager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
+		D2C5ECDD2F976A2400996E7A /* PopupWindow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PopupWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -52,6 +56,8 @@
 		D29EF8FD2F96172F005A76CE /* promptpop */ = {
 			isa = PBXGroup;
 			children = (
+				D2C5ECDD2F976A2400996E7A /* PopupWindow.swift */,
+				D2C5ECDB2F97692A00996E7A /* HotKeyManager.swift */,
 				D29EF8FE2F96172F005A76CE /* promptpopApp.swift */,
 				D29EF9002F96172F005A76CE /* ContentView.swift */,
 				D29EF9022F961731005A76CE /* Assets.xcassets */,
@@ -139,8 +145,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D2C5ECDE2F976A2400996E7A /* PopupWindow.swift in Sources */,
 				D29EF9012F96172F005A76CE /* ContentView.swift in Sources */,
 				D29EF8FF2F96172F005A76CE /* promptpopApp.swift in Sources */,
+				D2C5ECDC2F97692A00996E7A /* HotKeyManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
