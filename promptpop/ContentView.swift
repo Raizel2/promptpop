@@ -106,6 +106,7 @@ struct ContentView: View {
     }
     
     private func handleSelect(_ prompt: Prompt) {
+        // 開頭類結尾加換行,結尾類原樣
         let textToPaste: String
         switch prompt.category {
         case .prefix:
@@ -114,11 +115,16 @@ struct ContentView: View {
             textToPaste = prompt.content
         }
         
-        print("========================================")
-        print("[選中] \(prompt.title) (\(prompt.category.displayName))")
-        print("[要貼上的內容]")
-        print(textToPaste)
-        print("========================================")
+        // 1. 關視窗
+        NSApp.keyWindow?.close()
+        
+        // 2. 讓 promptpop 退居幕後,把前景身份還給原本的 App
+        NSApp.hide(nil)
+        
+        // 3. 延遲一點再貼(等系統完成切換)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            Paster.paste(textToPaste)
+        }
     }
     
     private var searchBar: some View {

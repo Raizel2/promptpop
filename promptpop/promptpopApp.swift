@@ -1,102 +1,100 @@
+//
+//  promptpopApp.swift
+//  promptpop
+//
+
 import SwiftUI
 import AppKit
 
 @main
 struct promptpopApp: App {
-
-    // 把 AppDelegate 接上。AppDelegate 負責處理「App 啟動後」的邏輯(例如註冊熱鍵、建立視窗管理器等)。
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
+    
     var body: some Scene {
-        // promptpop 不需要常駐主視窗,用 Settings 這個「空 Scene」當佔位,
-        // App 就不會自動開視窗,但還是有個合法的 Scene 結構。
-        Settings {
-            EmptyView()
-        }
+        Settings { EmptyView() }
     }
 }
 
-/// AppDelegate:處理 App 層級的事件,例如啟動、快捷鍵、視窗管理。
 final class AppDelegate: NSObject, NSApplicationDelegate {
-
-    private var hotKeyManager: HotKeyManager?
-    private var popupWindow: PopupWindow?
+    private var hotKeyManager: HotKeyManager!
     private var promptStore: PromptStore!
-    private let popupDelegate = PopupWindowDelegate()
-
+    private var popupWindow: PopupWindow?
+    private var windowDelegate: PopupWindowDelegate?
+    
+    private var previousApp: NSRunningApplication?
+    
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // 設成 accessory 模式:不在 Dock 顯示,不搶 App 切換器。
-        // 這樣 promptpop 就像個隱形幫手,按熱鍵才冒出來。
+        // 啟動時先設 .accessory(無 Dock 圖示)
         NSApp.setActivationPolicy(.accessory)
-
-        // 建立熱鍵管理器,按下時叫出視窗
+        
+        promptStore = PromptStore()
+        print("[promptpop] 已載入提示詞:")
+        for prompt in promptStore.prompts {
+            print("  [\(prompt.category.displayName)] \(prompt.title)")
+        }
+        
         hotKeyManager = HotKeyManager()
-        hotKeyManager?.onTrigger = { [weak self] in
+        hotKeyManager.onTrigger = { [weak self] in
             self?.togglePopup()
         }
-
-        // 建立提示詞資料來源。PromptStore 會在 init 時自動讀取 ~/Library/Application Support/promptpop/prompts.json
-            promptStore = PromptStore()
-            
-            // 啟動時印出載入結果,確認 JSON → Swift 管線通
-            print("[promptpop] 已載入提示詞:")
-            for prompt in promptStore.prompts {
-                print("  [\(prompt.category.displayName)] \(prompt.title)")
-            }
-            
-            print("[promptpop] 啟動完成,按 ⌘⇧P 叫出視窗")
+        
+        print("[promptpop] 啟動完成,按 ⌘⇧P 叫出視窗")
     }
-
-    /// 每次按 ⌘⇧P 時被呼叫。
-    /// 如果視窗已經開著,再按一次就關掉;如果關著,就打開。
-    private func togglePopup() {
+    
+    func togglePopup() {
         if let window = popupWindow, window.isVisible {
-            window.close()
-            return
+            closePopup()
+        } else {
+            showPopup()
         }
-
-        showPopup()
     }
-
-    private func showPopup() {
-        // 視窗裡先放一個最簡單的內容:只顯示「promptpop」四個字,用來驗證整條管線有通。
-        // 之後會把這裡換成真正的搜尋 UI。
+    
+    func showPopup() {
+        previousApp = NSWorkspace.shared.frontmostApplication
+        
+        // 暫時提升為正常 App(才能正確處理鍵盤與焦點切換)
+        NSApp.setActivationPolicy(.regular)
+        
         let content = ContentView(store: promptStore)
-
         let window = PopupWindow(content: content)
-        window.delegate = popupDelegate
+        
+        let delegate = PopupWindowDelegate()
+        window.delegate = delegate
+        windowDelegate = delegate
+        
         window.showCentered()
-
-        self.popupWindow = window
+        popupWindow = window
     }
-}
-
-/// 臨時的佔位內容。真正的搜尋 UI 之後再做。
-struct PlaceholderView: View {
-    var body: some View {
-        ZStack {
-            // 毛玻璃背景
-            VisualEffectView()
-
-            Text("promptpop")
-                .font(.system(size: 32, weight: .medium, design: .rounded))
-                .foregroundStyle(.primary)
+    
+    func closePopup() {
+        popupWindow?.close()
+        popupWindow = nil
+        windowDelegate = nil
+        
+        // 降回 accessory(無 Dock 圖示)
+        NSApp.setActivationPolicy(.accessory)
+    }
+    
+    func pasteAndDismiss(text: String) {
+        // 1. 關視窗
+        popupWindow?.close()
+        popupWindow = nil
+        windowDelegate = nil
+        
+        // 2. 把前景還給原本的 App
+        if let app = previousApp {
+            app.activate()
         }
-        .frame(width: 520, height: 360)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        previousApp = nil
+        
+        // 3. 延遲後降回 accessory
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            NSApp.setActivationPolicy(.accessory)
+        }
+        
+        // 4. 延遲模擬貼上
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            Paster.paste(text)
+        }
     }
-}
-
-/// 包一層 NSVisualEffectView,給 SwiftUI 用。
-/// 這個是 macOS 原生的毛玻璃效果。
-struct VisualEffectView: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = .hudWindow
-        view.blendingMode = .behindWindow
-        view.state = .active
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
