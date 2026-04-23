@@ -5,6 +5,9 @@
 build/
 DerivedData/
 
+# Release artefacts(發 release 時會產生,已上傳 GitHub,不進 repo)
+*.app.zip
+
 # Xcode per-user state (not shared across machines)
 xcuserdata/
 *.xcuserstate
