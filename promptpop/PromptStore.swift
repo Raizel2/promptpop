@@ -9,10 +9,12 @@ import Observation
 @Observable
 final class PromptStore {
 
-    private(set) var prompts: [Prompt] = []
+    var prompts: [Prompt] = []
 
-    /// 最近一次 load 失敗的訊息。nil = 正常
+    /// 最近一次 load / save 失敗的訊息。nil = 正常
     private(set) var loadError: String?
+
+    @ObservationIgnored private var saveWorkItem: DispatchWorkItem?
 
     init() {
         load()
@@ -38,6 +40,64 @@ final class PromptStore {
             self.loadError = "prompts.json 讀取失敗:\(error.localizedDescription)"
             NSLog("[PromptStore] 載入失敗:\(error)")
         }
+    }
+
+    // MARK: - 寫檔 / 編輯
+
+    /// 編輯後 500ms 沒動作才真的寫檔,避免每個鍵盤事件都 I/O
+    func scheduleSave() {
+        saveWorkItem?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            self?.saveNow()
+        }
+        saveWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+    }
+
+    /// 還有 pending 的存檔就立刻寫下去。視窗關閉 / App 退出時呼叫
+    func flushPendingSave() {
+        guard saveWorkItem != nil else { return }
+        saveWorkItem?.cancel()
+        saveWorkItem = nil
+        saveNow()
+    }
+
+    private func saveNow() {
+        let url = Self.promptsFileURL
+        do {
+            try FileManager.default.createDirectory(
+                at: url.deletingLastPathComponent(),
+                withIntermediateDirectories: true
+            )
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+            let data = try encoder.encode(prompts)
+            try data.write(to: url, options: [.atomic])
+            loadError = nil
+            NSLog("[PromptStore] 已存檔 \(prompts.count) 句")
+        } catch {
+            loadError = "存檔失敗:\(error.localizedDescription)"
+            NSLog("[PromptStore] 存檔失敗:\(error)")
+        }
+    }
+
+    /// 新增一句空的 prompt,回傳剛加的項目(讓 UI 立刻選取它)
+    @discardableResult
+    func addNew() -> Prompt {
+        let new = Prompt(
+            id: UUID().uuidString,
+            category: .prefix,
+            title: "新提示詞",
+            content: ""
+        )
+        prompts.append(new)
+        scheduleSave()
+        return new
+    }
+
+    func delete(id: String) {
+        prompts.removeAll { $0.id == id }
+        scheduleSave()
     }
 
     private func writeDefaultsToDisk(at url: URL) {

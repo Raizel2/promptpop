@@ -37,26 +37,36 @@ struct ContentView: View {
             }
             searchBar
             Divider().opacity(0.3)
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    ForEach(PromptCategory.allCases, id: \.self) { category in
-                        let promptsInCategory = filteredPrompts.filter { $0.category == category }
-                        if !promptsInCategory.isEmpty {
-                            sectionHeader(title: category.displayName)
-                            ForEach(promptsInCategory) { prompt in
-                                promptRow(
-                                    prompt: prompt,
-                                    isSelected: selectedPrompt?.id == prompt.id
-                                )
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 0) {
+                        ForEach(PromptCategory.allCases, id: \.self) { category in
+                            let promptsInCategory = filteredPrompts.filter { $0.category == category }
+                            if !promptsInCategory.isEmpty {
+                                sectionHeader(title: category.displayName)
+                                ForEach(promptsInCategory) { prompt in
+                                    promptRow(
+                                        prompt: prompt,
+                                        isSelected: selectedPrompt?.id == prompt.id
+                                    )
+                                    .id(prompt.id)  // 供 scrollTo 定位
+                                }
                             }
                         }
                     }
+                    .padding(.vertical, 8)
                 }
-                .padding(.vertical, 8)
+                // 選中改變時自動捲到可見(↑↓ 鍵、搜尋後 reset 到 0 都會觸發)
+                .onChange(of: selectedPrompt?.id) { _, newId in
+                    guard let id = newId else { return }
+                    withAnimation(.easeOut(duration: 0.12)) {
+                        proxy.scrollTo(id, anchor: .center)
+                    }
+                }
             }
         }
-        .frame(width: 520, height: 360)
+        .frame(width: 520, height: 460)
         .background(VisualEffectView())
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onChange(of: searchText) { _, _ in

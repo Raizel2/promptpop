@@ -10,8 +10,8 @@ import SwiftUI
 final class PopupWindow: NSWindow {
 
     init<Content: View>(content: Content) {
-        // 先決定視窗大小。之後做真正的搜尋 UI 再調整。
-        let contentSize = NSSize(width: 520, height: 360)
+        // 視窗大小需與 ContentView 的 .frame 一致
+        let contentSize = NSSize(width: 520, height: 460)
 
         super.init(
             contentRect: NSRect(origin: .zero, size: contentSize),

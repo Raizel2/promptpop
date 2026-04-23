@@ -1,45 +1,70 @@
 import Cocoa
 import Carbon.HIToolbox
 
-/// 負責註冊全域快捷鍵 ⌘⇧P,按下時觸發 onTrigger 回呼。
+/// 註冊單支全域快捷鍵(⌘⇧ + 指定按鍵),按下時觸發 onTrigger。
 /// 用 Carbon 的 RegisterEventHotKey API,能真正獨佔這組按鍵。
+///
+/// ⚠️ 同一個 target 只裝一個共用的 Carbon event handler,
+/// 每支熱鍵透過 `id → manager` 字典分發。
+/// 原因:實測 `InstallEventHandler` 對同一 target 裝多個 handler 時,
+/// 只有最後裝的會被呼叫,return `eventNotHandledErr` 也不會讓事件傳給 sibling。
 final class HotKeyManager {
 
     /// 按下快捷鍵時要執行的動作,由外部設定
     var onTrigger: (() -> Void)?
 
     private var hotKeyRef: EventHotKeyRef?
-    private var eventHandler: EventHandlerRef?
 
-    /// 幫 promptpop 的熱鍵取一個識別碼,數字隨便設,只要在自己 App 裡唯一就好
-    private let hotKeyID = EventHotKeyID(signature: OSType(0x50504F50), id: 1) // "PPOP"
+    private let hotKeyID: EventHotKeyID
+    private let keyCode: UInt32
+    private let label: String
 
-    init() {
+    // MARK: - 共用 dispatch
+
+    /// `id → HotKeyManager` 註冊表。共用 handler 用這個 O(1) 找到該呼叫誰
+    private static var managers: [UInt32: HotKeyManager] = [:]
+    private static var sharedHandler: EventHandlerRef?
+    private static var sharedHandlerInstalled = false
+
+    /// - Parameters:
+    ///   - keyCode: Carbon 的 virtual key code(例如 kVK_ANSI_P、kVK_ANSI_E)
+    ///   - id: 用來識別這支熱鍵,同一 App 內要唯一
+    ///   - label: log 用的名稱,像「⌘⇧P」「⌘⇧E」
+    init(keyCode: UInt32, id: UInt32, label: String) {
+        self.keyCode = keyCode
+        self.hotKeyID = EventHotKeyID(signature: OSType(0x50504F50), id: id)
+        self.label = label
+
+        HotKeyManager.installSharedHandlerIfNeeded()
+        HotKeyManager.managers[id] = self
         registerHotKey()
     }
 
     deinit {
-        unregisterHotKey()
+        HotKeyManager.managers.removeValue(forKey: hotKeyID.id)
+        if let hotKeyRef = hotKeyRef {
+            UnregisterEventHotKey(hotKeyRef)
+        }
     }
 
-    private func registerHotKey() {
-        // 1. 告訴系統我們要監聽「熱鍵被按下」這種事件
+    // MARK: - 共用 Carbon event handler(只裝一次)
+
+    private static func installSharedHandlerIfNeeded() {
+        guard !sharedHandlerInstalled else { return }
+        sharedHandlerInstalled = true
+
         var eventType = EventTypeSpec(
             eventClass: OSType(kEventClassKeyboard),
             eventKind: UInt32(kEventHotKeyPressed)
         )
 
-        // 2. 裝一個 callback:系統收到熱鍵事件 → 呼叫這個函式
-        //    因為 C API 不能直接抓 self,所以用 Unmanaged 把 self 的指標傳進去,callback 裡再拿回來
-        let selfPtr = Unmanaged.passUnretained(self).toOpaque()
-
         InstallEventHandler(
             GetApplicationEventTarget(),
-            { (_, event, userData) -> OSStatus in
-                guard let userData = userData, let event = event else { return noErr }
-                let manager = Unmanaged<HotKeyManager>.fromOpaque(userData).takeUnretainedValue()
+            { (_, event, _) -> OSStatus in
+                guard let event = event else {
+                    return OSStatus(eventNotHandledErr)
+                }
 
-                // 確認這個事件真的是我們註冊的熱鍵(不是別的)
                 var hkID = EventHotKeyID()
                 let status = GetEventParameter(
                     event,
@@ -50,27 +75,29 @@ final class HotKeyManager {
                     nil,
                     &hkID
                 )
+                guard status == noErr else {
+                    return OSStatus(eventNotHandledErr)
+                }
 
-                if status == noErr && hkID.id == manager.hotKeyID.id {
-                    // 回主執行緒呼叫 onTrigger(UI 相關的動作必須在主執行緒)
+                if let manager = HotKeyManager.managers[hkID.id] {
                     DispatchQueue.main.async {
                         manager.onTrigger?()
                     }
+                    return noErr
                 }
-
-                return noErr
+                return OSStatus(eventNotHandledErr)
             },
             1,
             &eventType,
-            selfPtr,
-            &eventHandler
+            nil,
+            &sharedHandler
         )
+    }
 
-        // 3. 實際向系統註冊 ⌘⇧P
-        //    kVK_ANSI_P = P 鍵的鍵碼
-        //    cmdKey + shiftKey = 修飾鍵組合
+    // MARK: - 註冊熱鍵
+
+    private func registerHotKey() {
         let modifiers: UInt32 = UInt32(cmdKey | shiftKey)
-        let keyCode: UInt32 = UInt32(kVK_ANSI_P)
 
         let status = RegisterEventHotKey(
             keyCode,
@@ -82,18 +109,9 @@ final class HotKeyManager {
         )
 
         if status != noErr {
-            print("[HotKeyManager] 註冊熱鍵失敗,status = \(status)")
+            NSLog("[HotKeyManager] 註冊 \(label) 失敗,status = \(status)")
         } else {
-            print("[HotKeyManager] ⌘⇧P 已註冊")
-        }
-    }
-
-    private func unregisterHotKey() {
-        if let hotKeyRef = hotKeyRef {
-            UnregisterEventHotKey(hotKeyRef)
-        }
-        if let eventHandler = eventHandler {
-            RemoveEventHandler(eventHandler)
+            NSLog("[HotKeyManager] \(label) 已註冊")
         }
     }
 }

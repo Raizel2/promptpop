@@ -9,9 +9,9 @@ import Foundation
 // 欄位順序和名稱必須與 prompts.json 完全一致,Codable 才能自動轉換
 struct Prompt: Codable, Identifiable, Hashable {
     let id: String
-    let category: PromptCategory
-    let title: String
-    let content: String
+    var category: PromptCategory
+    var title: String
+    var content: String
 }
 
 // 提示詞分類:開頭(prefix)或結尾(suffix)
