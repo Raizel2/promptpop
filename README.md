@@ -8,11 +8,13 @@ No Dock icon. No settings UI. Just a JSON file you own and a hotkey that works e
 
 ## Features
 
-- **⌘⇧P global hotkey** — works in any focused app
+- **⌘⇧P global hotkey** — pop the picker in any focused app
+- **⌘⇧E global hotkey** — open the built-in prompt editor (no JSON wrangling)
 - **Literal search** through your prompt library by title or content
 - **Prefix vs suffix** categories — prefix prompts get a trailing newline (for role-setting preambles); suffix prompts paste as-is
-- **Edit your prompts in any text editor** — a plain JSON file, reloaded every time you open the popup
-- **Safe reload** — if your JSON is malformed, the last-good copy stays loaded and a red banner warns you until you fix it
+- **Built-in editor** — add, edit, delete prompts in a proper window; auto-saves as you type
+- **Safe reload** — if the underlying JSON is ever malformed, the last-good copy stays loaded and a red banner warns you until it's fixed
+- **Menu bar icon** — click for quick access to the editor
 - **Starts at login**, runs silently in the background
 
 ## Install
@@ -29,13 +31,19 @@ That's it. Press **⌘⇧P** anywhere to use it.
 
 ## Edit your prompts
 
+**The easy way — built-in editor:**
+
+Press **⌘⇧E** anywhere (or click the menu bar icon → *Edit Prompts…*) to open a proper editor window. Pick a prompt on the left, tweak title / category / content on the right. Changes auto-save 500ms after you stop typing.
+
+**The power-user way — directly edit the JSON:**
+
 Your prompts live at:
 
 ```
 ~/Library/Application Support/promptpop/prompts.json
 ```
 
-Open it in any text editor. The shape of each entry:
+The shape of each entry:
 
 ```json
 {
@@ -76,9 +84,15 @@ MIT © Raizel — see [LICENSE](./LICENSE).
 4. 出現權限請求時授權「輔助使用」:
    系統設定 → 隱私與安全性 → 輔助使用 → 加入 `promptpop.app` 並打開開關
 
-裝完就沒事了,沒 Dock 圖示、在背景跑。任何 App 裡按 ⌘⇧P 叫出來。
+裝完就沒事了,沒 Dock 圖示、在背景跑。任何 App 裡按 ⌘⇧P 叫出來、按 ⌘⇧E 打開內建的 prompt 編輯視窗。
 
 ### 自訂你的提示詞
+
+**簡單路線 — 內建編輯視窗:**
+
+任何地方按 **⌘⇧E**(或點 menu bar 的 icon → *編輯 Prompts…*)叫出編輯視窗。左邊選一句、右邊改標題 / 類別 / 內容,停止打字 500ms 後自動存檔。
+
+**進階路線 — 直接改 JSON:**
 
 你的 prompts 放在:
 
@@ -86,7 +100,7 @@ MIT © Raizel — see [LICENSE](./LICENSE).
 ~/Library/Application Support/promptpop/prompts.json
 ```
 
-用任何文字編輯器打開改。每筆的格式:
+每筆的格式:
 
 ```json
 {
