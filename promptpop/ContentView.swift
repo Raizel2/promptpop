@@ -32,6 +32,9 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            if let err = store.loadError {
+                errorBanner(err)
+            }
             searchBar
             Divider().opacity(0.3)
             
@@ -88,6 +91,7 @@ struct ContentView: View {
                 }
                 return nil
             case 36, 76: // Enter
+                NSLog("[promptpop] Enter pressed, selectedPrompt=\(selectedPrompt?.title ?? "nil")")
                 if let prompt = selectedPrompt {
                     handleSelect(prompt)
                 }
@@ -114,19 +118,26 @@ struct ContentView: View {
         case .suffix:
             textToPaste = prompt.content
         }
-        
-        // 1. 關視窗
-        NSApp.keyWindow?.close()
-        
-        // 2. 讓 promptpop 退居幕後,把前景身份還給原本的 App
-        NSApp.hide(nil)
-        
-        // 3. 延遲一點再貼(等系統完成切換)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            Paster.paste(textToPaste)
-        }
+
+        // 交給 AppDelegate 完成「關視窗 → 切回原 App → 貼上」流程
+        AppDelegate.shared?.pasteAndDismiss(text: textToPaste)
     }
     
+    private func errorBanner(_ message: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: "exclamationmark.triangle.fill")
+            Text(message)
+                .lineLimit(2)
+            Spacer()
+        }
+        .font(.system(size: 11, weight: .medium))
+        .foregroundStyle(.white)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.red.opacity(0.85))
+    }
+
     private var searchBar: some View {
         HStack(spacing: 10) {
             Image(systemName: "magnifyingglass")

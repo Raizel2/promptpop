@@ -52,18 +52,22 @@ final class PopupWindow: NSWindow {
         return true
     }
 
-    /// 把視窗置中在螢幕上,並顯示。
+    /// 把視窗置中在「滑鼠目前所在的螢幕」,並顯示。
     func showCentered() {
-        if let screen = NSScreen.main {
-            let screenFrame = screen.visibleFrame
-            let windowFrame = self.frame
-            let x = screenFrame.midX - windowFrame.width / 2
-            let y = screenFrame.midY - windowFrame.height / 2 + 80 // 偏上一點,符合命令面板的習慣
+        // 找出滑鼠在哪個螢幕
+        let mouseLocation = NSEvent.mouseLocation
+        let targetScreen = NSScreen.screens.first { NSMouseInRect(mouseLocation, $0.frame, false) }
+            ?? NSScreen.main
+
+        if let screen = targetScreen {
+            let f = screen.visibleFrame
+            let x = f.midX - self.frame.width / 2
+            let y = f.midY - self.frame.height / 2
             self.setFrameOrigin(NSPoint(x: x, y: y))
         }
 
         self.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)  // 把視窗帶到最前面
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
 

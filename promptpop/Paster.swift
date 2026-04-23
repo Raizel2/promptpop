@@ -4,40 +4,53 @@
 //
 
 import AppKit
+import Carbon.HIToolbox
 
 enum Paster {
+    /// 把 text 放到剪貼簿 → 模擬 ⌘V → 0.5 秒後還原原本的剪貼簿
     static func paste(_ text: String) {
-        print("[Paster] 開始直接輸入,內容長度:\(text.count)")
-        
-        // 延遲讓焦點切回去
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            typeString(text)
+        NSLog("[promptpop] Paster.paste called, len=\(text.count)")
+        let pasteboard = NSPasteboard.general
+
+        // 備份使用者原本的剪貼簿(可能是文字、圖片、檔案…通通保留)
+        let savedItems = pasteboard.pasteboardItems?.map { item -> NSPasteboardItem in
+            let copy = NSPasteboardItem()
+            for type in item.types {
+                if let data = item.data(forType: type) {
+                    copy.setData(data, forType: type)
+                }
+            }
+            return copy
+        } ?? []
+
+        // 寫入要貼的文字
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+
+        // 等一點點時間讓焦點真的切到目標 App,再送 ⌘V
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            postCommandV()
+        }
+
+        // 貼完 0.5 秒後還原剪貼簿
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            pasteboard.clearContents()
+            if !savedItems.isEmpty {
+                pasteboard.writeObjects(savedItems)
+            }
         }
     }
-    
-    /// 逐字元模擬 Unicode 輸入,不經過剪貼簿
-    private static func typeString(_ text: String) {
+
+    private static func postCommandV() {
         let source = CGEventSource(stateID: .combinedSessionState)
-        
-        for char in text {
-            // 每個字元變成 UTF-16 code units
-            let utf16 = Array(String(char).utf16)
-            
-            guard let keyDown = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: true),
-                  let keyUp = CGEvent(keyboardEventSource: source, virtualKey: 0, keyDown: false) else {
-                continue
-            }
-            
-            // 塞入 Unicode 字串
-            utf16.withUnsafeBufferPointer { buffer in
-                keyDown.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: buffer.baseAddress)
-                keyUp.keyboardSetUnicodeString(stringLength: utf16.count, unicodeString: buffer.baseAddress)
-            }
-            
-            keyDown.post(tap: .cghidEventTap)
-            keyUp.post(tap: .cghidEventTap)
-        }
-        
-        print("[Paster] ✅ 輸入完成")
+        let vKey = CGKeyCode(kVK_ANSI_V)
+
+        let down = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: true)
+        down?.flags = .maskCommand
+        down?.post(tap: .cghidEventTap)
+
+        let up = CGEvent(keyboardEventSource: source, virtualKey: vKey, keyDown: false)
+        up?.flags = .maskCommand
+        up?.post(tap: .cghidEventTap)
     }
 }
