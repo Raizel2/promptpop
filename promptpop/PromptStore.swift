@@ -82,6 +82,8 @@ final class PromptStore {
     }
 
     /// 新增一句空的 prompt,回傳剛加的項目(讓 UI 立刻選取它)
+    /// 插在陣列最前,這樣使用者剛加的 prompt 在 popup 裡出現在自己類別的最上面,
+    /// 不用按 ↓ 到最底才看得到
     @discardableResult
     func addNew() -> Prompt {
         let new = Prompt(
@@ -90,13 +92,40 @@ final class PromptStore {
             title: "新提示詞",
             content: ""
         )
-        prompts.append(new)
+        prompts.insert(new, at: 0)
         scheduleSave()
         return new
     }
 
     func delete(id: String) {
         prompts.removeAll { $0.id == id }
+        scheduleSave()
+    }
+
+    /// 類別內拖曳排序。source / destination 是類別過濾後列表的 index,
+    /// 需要翻譯成 self.prompts 的絕對 index 才能真正 move
+    func reorder(category: PromptCategory, from source: IndexSet, to destination: Int) {
+        // 1. 找到這個類別在 self.prompts 裡的所有位置(保留原 index)
+        let inCategory = prompts.enumerated()
+            .filter { $0.element.category == category }
+        guard !inCategory.isEmpty else { return }
+
+        // 2. 翻譯 source:filtered index → 絕對 index
+        let absoluteSource = IndexSet(source.compactMap { filteredIdx in
+            guard filteredIdx < inCategory.count else { return nil }
+            return inCategory[filteredIdx].offset
+        })
+
+        // 3. 翻譯 destination
+        //    .onMove 的 destination 可能等於 inCategory.count(丟到最後)
+        let absoluteDestination: Int
+        if destination >= inCategory.count {
+            absoluteDestination = (inCategory.last?.offset ?? prompts.count - 1) + 1
+        } else {
+            absoluteDestination = inCategory[destination].offset
+        }
+
+        prompts.move(fromOffsets: absoluteSource, toOffset: absoluteDestination)
         scheduleSave()
     }
 

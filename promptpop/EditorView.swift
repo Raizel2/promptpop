@@ -45,11 +45,14 @@ struct EditorView: View {
                             ForEach(inCategory) { p in
                                 promptRow(p).tag(p.id)
                             }
+                            .onMove { source, dest in
+                                store.reorder(category: category, from: source, to: dest)
+                            }
                         }
                     }
                 }
             }
-            .listStyle(.sidebar)
+            .listStyle(.inset)
 
             Divider()
 

@@ -207,7 +207,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // 暫時提升為正常 App(才能正確處理鍵盤與焦點切換)
         NSApp.setActivationPolicy(.regular)
 
-        // 每次叫出視窗都重讀一次 prompts.json(讓使用者剛改完就能看到)
+        // 順序很重要:
+        // 1. 先把編輯器那邊 pending 的 debounce 存檔寫下去,避免 race(不然 load 會覆蓋未存的改動)
+        // 2. 再 load 讀回最新 JSON(讓使用者剛改的立刻反映到 popup)
+        promptStore.flushPendingSave()
         promptStore.load()
 
         let content = ContentView(store: promptStore)

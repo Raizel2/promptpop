@@ -8,11 +8,12 @@ No Dock icon. No settings UI. Just a JSON file you own and a hotkey that works e
 
 ## Features
 
-- **⌘⇧P global hotkey** — pop the picker in any focused app
+- **⌘⇧P global hotkey** — pop the picker in any focused app. Pick with ↑↓ + Enter, **or just click** a row
 - **⌘⇧E global hotkey** — open the built-in prompt editor (no JSON wrangling)
 - **Literal search** through your prompt library by title or content
 - **Prefix vs suffix** categories — prefix prompts get a trailing newline (for role-setting preambles); suffix prompts paste as-is
-- **Built-in editor** — add, edit, delete prompts in a proper window; auto-saves as you type
+- **Built-in editor** — add, edit, delete, and **drag-to-reorder**; auto-saves as you type
+- **IME-friendly** — arrow keys and Enter defer to Zhuyin / Pinyin / etc. composition; only act on the picker after the composition is committed
 - **Safe reload** — if the underlying JSON is ever malformed, the last-good copy stays loaded and a red banner warns you until it's fixed
 - **Menu bar icon** — click for quick access to the editor
 - **Starts at login**, runs silently in the background
@@ -33,7 +34,7 @@ That's it. Press **⌘⇧P** anywhere to use it.
 
 **The easy way — built-in editor:**
 
-Press **⌘⇧E** anywhere (or click the menu bar icon → *Edit Prompts…*) to open a proper editor window. Pick a prompt on the left, tweak title / category / content on the right. Changes auto-save 500ms after you stop typing.
+Press **⌘⇧E** anywhere (or click the menu bar icon → *Edit Prompts…*) to open a proper editor window. Pick a prompt on the left, tweak title / category / content on the right. Changes auto-save 500ms after you stop typing. **Drag rows up or down in the sidebar to reorder** within a category — the popup reflects the new order next time it opens.
 
 **The power-user way — directly edit the JSON:**
 
@@ -63,7 +64,6 @@ See [`examples/prompts.default.json`](./examples/prompts.default.json) for the s
 ## Known limitations
 
 - **Literal search only** — typing `zhongwen` won't find 中文 prompts, and vice versa. Cross-language / phonetic matching is on the roadmap.
-- **Arrow keys are swallowed during IME composition** (Zhuyin, Pinyin, etc.). Commit your composed text first, then navigate.
 - **Not signed with a paid Apple Developer ID** — first launch requires right-click → Open. After that it opens normally.
 
 ## License
@@ -90,7 +90,7 @@ MIT © Raizel — see [LICENSE](./LICENSE).
 
 **簡單路線 — 內建編輯視窗:**
 
-任何地方按 **⌘⇧E**(或點 menu bar 的 icon → *編輯 Prompts…*)叫出編輯視窗。左邊選一句、右邊改標題 / 類別 / 內容,停止打字 500ms 後自動存檔。
+任何地方按 **⌘⇧E**(或點 menu bar 的 icon → *編輯 Prompts…*)叫出編輯視窗。左邊選一句、右邊改標題 / 類別 / 內容,停止打字 500ms 後自動存檔。**在左側清單把任一列上下拖移可調整順序**(只能在同類別內),popup 下次打開會照新順序顯示。
 
 **進階路線 — 直接改 JSON:**
 
@@ -120,7 +120,6 @@ MIT © Raizel — see [LICENSE](./LICENSE).
 ### 已知限制
 
 - **中英搜尋不對照** — 搜「zhongwen」找不到「中文」的 prompt,反之亦然。跨語言 / 拼音對照在 roadmap 上。
-- **注音/拼音組字中按方向鍵會被組字視窗吃掉**。先上屏完成,再按方向鍵選。
 - **未用付費 Apple Developer ID 簽章**,第一次打開被 Gatekeeper 擋是預期行為,右鍵 → 打開即可。
 
 ### License

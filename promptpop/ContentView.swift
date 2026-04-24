@@ -24,10 +24,18 @@ struct ContentView: View {
                 || prompt.content.localizedCaseInsensitiveContains(query)
         }
     }
-    
+
+    /// 視覺順序:先列出所有「開頭」、再列出所有「結尾」,每段內照 store.prompts 的順序。
+    /// 鍵盤 ↑↓ 走的是這個順序,才會跟畫面一致
+    private var orderedPrompts: [Prompt] {
+        PromptCategory.allCases.flatMap { category in
+            filteredPrompts.filter { $0.category == category }
+        }
+    }
+
     private var selectedPrompt: Prompt? {
-        guard filteredPrompts.indices.contains(selectedIndex) else { return nil }
-        return filteredPrompts[selectedIndex]
+        guard orderedPrompts.indices.contains(selectedIndex) else { return nil }
+        return orderedPrompts[selectedIndex]
     }
     
     var body: some View {
@@ -46,10 +54,16 @@ struct ContentView: View {
                             if !promptsInCategory.isEmpty {
                                 sectionHeader(title: category.displayName)
                                 ForEach(promptsInCategory) { prompt in
-                                    promptRow(
-                                        prompt: prompt,
-                                        isSelected: selectedPrompt?.id == prompt.id
-                                    )
+                                    Button {
+                                        // 點一下直接貼上(跟 Enter 行為一致)
+                                        handleSelect(prompt)
+                                    } label: {
+                                        promptRow(
+                                            prompt: prompt,
+                                            isSelected: selectedPrompt?.id == prompt.id
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
                                     .id(prompt.id)  // 供 scrollTo 定位
                                 }
                             }
@@ -88,10 +102,19 @@ struct ContentView: View {
         if keyMonitor != nil { return }
         
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // 如果輸入法正在組字(例如注音/拼音還沒上屏),所有鍵都放行給 TextField/IME 處理。
+            // 這樣:
+            //   - 注音組字中按 Enter 會正常 commit 候選字,不會被我們當「選中項目」
+            //   - 組字中按 ↑↓ 會讓輸入法切候選字,不會跳到別的 prompt
+            if let editor = NSApp.keyWindow?.firstResponder as? NSTextView,
+               editor.hasMarkedText() {
+                return event
+            }
+
             // keyCode 參考:125=↓  126=↑  36=Enter  76=小鍵盤 Enter
             switch event.keyCode {
             case 125: // ↓
-                if selectedIndex < filteredPrompts.count - 1 {
+                if selectedIndex < orderedPrompts.count - 1 {
                     selectedIndex += 1
                 }
                 return nil  // 吃掉事件,不讓 TextField 收到
