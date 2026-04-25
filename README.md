@@ -20,15 +20,21 @@ No Dock icon. No settings UI. Just a JSON file you own and a hotkey that works e
 
 ## Install
 
-Requires **macOS 14+**.
+Requires **macOS 14+**, Apple Silicon (arm64).
 
-1. Download the latest `promptpop-vX.Y.Z.app.zip` from [Releases](https://github.com/Raizel2/promptpop/releases)
-2. Unzip, drag `promptpop.app` into `/Applications`
-3. **Right-click → Open** the first time (unsigned apps are blocked by default; this only applies on first launch)
-4. When prompted, grant **Accessibility** access:
-   System Settings → Privacy & Security → Accessibility → add `promptpop.app` and turn it on
+### Steps
 
-That's it. Press **⌘⇧P** anywhere to use it.
+1. Open the latest [Release](https://github.com/Raizel2/promptpop/releases) and download `promptpop-vX.Y.Z.app.zip` from the **Assets** section.
+2. Double-click the zip to unzip — you'll get `promptpop.app`.
+3. Drag `promptpop.app` into `/Applications`.
+4. **First launch: right-click `promptpop.app` → Open** (not double-click). Because promptpop isn't signed with a paid Apple Developer ID, macOS Gatekeeper blocks double-click the first time. The right-click → Open dialog asks "are you sure?"; click **Open**. This is a **one-time** step — afterwards, double-click works normally.
+5. promptpop will request **Accessibility** access (needed to simulate ⌘V paste). Click **Open System Settings** — it jumps straight to *Privacy & Security → Accessibility* with `promptpop` already in the list. **Turn the switch on.**
+6. Press **⌘⇧P** anywhere to pop the picker, or **⌘⇧E** to open the editor.
+
+### Good to know
+
+- promptpop registers itself as a **login item** on first launch, so it auto-starts whenever you log in. No Dock icon, no visible window — it sits quietly in the background waiting for ⌘⇧P / ⌘⇧E.
+- If ⌘⇧P does nothing right after you granted Accessibility, try pressing it once more — macOS occasionally needs a beat to apply the new permission.
 
 ## Edit your prompts
 
@@ -76,15 +82,20 @@ MIT © Raizel — see [LICENSE](./LICENSE).
 
 按 **⌘⇧P** 在任何 App 叫出你常用的 AI 提示詞選單,選一句按 Enter,直接貼到游標所在位置。
 
-### 安裝(macOS 14+)
+### 安裝(macOS 14+,僅支援 Apple Silicon / arm64)
 
-1. 從 [Releases](https://github.com/Raizel2/promptpop/releases) 下載 `promptpop-vX.Y.Z.app.zip`
-2. 解壓後把 `promptpop.app` 拖到 `/Applications`
-3. **第一次必須右鍵 → 打開**(未簽章的 App 被 Gatekeeper 擋是正常的,只有第一次需要這樣做)
-4. 出現權限請求時授權「輔助使用」:
-   系統設定 → 隱私與安全性 → 輔助使用 → 加入 `promptpop.app` 並打開開關
+1. 到 [Releases](https://github.com/Raizel2/promptpop/releases) 打開最新版,在 **Assets** 區下載 `promptpop-vX.Y.Z.app.zip`。
+2. 雙擊 zip 解壓縮,會得到 `promptpop.app`。
+3. 把 `promptpop.app` 拖到 `/Applications`。
+4. **第一次打開請用「右鍵 → 打開」**(不是雙擊!)。
+   promptpop 沒用付費的 Apple Developer ID 簽章,所以第一次雙擊會被 macOS Gatekeeper 擋下。右鍵 → 打開會跳「確定要打開?」的對話框,按「打開」。**只需要做一次**,之後雙擊就正常。
+5. 第一次打開時會彈出「promptpop 想要控制你的電腦」對話框 —— 這是**輔助使用**權限請求(模擬 ⌘V 貼上需要它)。按「打開系統設定」,會直接跳到 *隱私與安全性 → 輔助使用*,裡面自動會出現 `promptpop`。**把開關切開。**
+6. 完成!任何地方按 **⌘⇧P** 叫出提示詞選單、**⌘⇧E** 打開編輯視窗。
 
-裝完就沒事了,沒 Dock 圖示、在背景跑。任何 App 裡按 ⌘⇧P 叫出來、按 ⌘⇧E 打開內建的 prompt 編輯視窗。
+### 裝完後的細節
+
+- promptpop 第一次啟動時會把自己註冊為**登入項目**,之後每次開機/登入都會自動在背景跑起來。沒 Dock 圖示、也沒視窗,靜靜地等你按 ⌘⇧P / ⌘⇧E。
+- 授權完輔助使用後第一下 ⌘⇧P 沒反應是正常的,再按一次就好 —— macOS 有時候需要一點時間套用新權限。
 
 ### 自訂你的提示詞
 
