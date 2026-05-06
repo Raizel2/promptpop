@@ -1,0 +1,56 @@
+[
+  {
+    "id" : "prefix-background",
+    "category" : "prefix",
+    "title" : "我的背景(請先修改此句)",
+    "content" : "我是 [請填入出生年] 年生的 [請填入國籍] 人,[請填入學歷/專業] 背景,現職是 [請填入職業]。興趣是 [請填入興趣]。如果回答中有跟我的背景相關的連結,請主動指出。"
+  },
+  {
+    "id" : "prefix-no-flattery",
+    "category" : "prefix",
+    "title" : "不要迎合我",
+    "content" : "請不要迎合我,直接告訴我真實的看法,包含我可能不想聽的。"
+  },
+  {
+    "id" : "prefix-devils-advocate",
+    "category" : "prefix",
+    "title" : "魔鬼代言人",
+    "content" : "請扮演魔鬼代言人,挑戰我的想法。"
+  },
+  {
+    "id" : "suffix-ask-questions",
+    "category" : "suffix",
+    "title" : "先問我問題",
+    "content" : "請先盡量問我問題,幫助你更好地回答。"
+  },
+  {
+    "id" : "suffix-clarify",
+    "category" : "suffix",
+    "title" : "釐清我在問什麼",
+    "content" : "這是我的大致想法,但可能沒問得精準。先幫我釐清我真正想問的可能是什麼,再回答。"
+  },
+  {
+    "id" : "suffix-fresh-data",
+    "category" : "suffix",
+    "title" : "查最新資料",
+    "content" : "請先查最新的資料再回答我,並附上資料來源(請自行判斷今天日期,並搜尋近期資訊)。"
+  },
+  {
+    "id" : "suffix-search-precedent",
+    "category" : "suffix",
+    "title" : "搜尋前人經驗",
+    "content" : "請幫我搜尋網路或歷史上有沒有類似的產品、想法或討論。"
+  },
+  {
+    "id" : "suffix-three-angles",
+    "category" : "suffix",
+    "title" : "三個角度分析",
+    "content" : "請從至少三個不同角度分析這個問題,再綜合給我結論。"
+  },
+  {
+    "id" : "suffix-table",
+    "category" : "suffix",
+    "title" : "用表格整理",
+    "content" : "請用表格整理。"
+  }
+]
